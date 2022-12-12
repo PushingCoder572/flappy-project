@@ -10,7 +10,7 @@ void user_isr( void ) {
 }
 
 void init_pipe(Pipe *pipe) {
-    pipe->y = 30;
+    pipe->y = -7;
     pipe->gap_size = 40;
     pipe->gap_position = 32;
 }
@@ -61,6 +61,12 @@ void start_game(Game *game) {
     game->highscore = 0;
     game->score = 0;
     game->game_over = 1;
+    int i, j;
+    for (i = 0; i < 16; i++) {
+        for (j = 0; j < 4; j++) {
+            game->highscores[i][j] = 0;
+        }
+    }
 }
 
 void init_game(Game *game) {
@@ -72,6 +78,7 @@ void init_game(Game *game) {
     game->game_over = 0;
     game->jump_flag = 0;
     game->game_ended = 0;
+    game->name_select = 0;
 
     PR2 = 18549; // 31250 = 80MHz / 256 / 10Hz
     T2CONSET = 0x70; // 0x70 = 0111 0000
@@ -88,25 +95,27 @@ void kill_game(Game *game) {
     T2CONCLR = 0x8000; // 0x8000 = 1000 0000 0000 0000
     T3CONCLR = 0x8000; // 0x8000 = 1000 0000 0000 0000
 
+    if (game->score > 0 && game->score > game->highscores[15][0]) {
+        game->name_select = 1;
+    }
+
     game->highscore = max(game->highscore, game->score);
 }
 
 void run_game(Game *game) {
     if (!game->game_ended) {
         btn_signal = getbtns() & 1;
-        PORTE = prev_signal;
-        if (btn_signal && !prev_signal) {
-            jump_bird(&game->bird);
+        if (btn_signal != prev_signal && btn_signal) {
+            game->jump_flag = 1;
         }
-
-        prev_signal = btn_signal;
-        //if (game->jump_flag) 
-        //game->jump_flag = 0;
 
         if (IFS(0) & 0x1000) {
             IFSCLR(0) = 0x1000;
             clear_screen(game->screen, game->screen_matrix);
-
+            if (game->jump_flag && btn_signal) {
+                jump_bird(&game->bird);
+                game->jump_flag = 0;
+            }
             if (timeoutcounter == 2) {
                 move_pipe(&game->pipe, &game->score);
                 timeoutcounter = 0;
@@ -119,6 +128,7 @@ void run_game(Game *game) {
             draw_screen(game->screen);
             timeoutcounter++;
         }
+        prev_signal = btn_signal;
     } else {
         if (IFS(0) & 0x1000) {
         IFSCLR(0) = 0x1000;

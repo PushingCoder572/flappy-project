@@ -28,11 +28,17 @@ void draw_text_block(uint8_t screen[128][32], uint8_t x, int16_t y, const uint8_
     }
 }
 
-void draw_object(uint8_t screen[128][32], uint8_t x, uint8_t y, uint8_t num, uint8_t border) {
+void draw_object(uint8_t screen[128][32], uint8_t x, uint8_t y, uint8_t num, uint8_t border, uint8_t no_left) {
     int i, j;
-    if (border) {
+    if (border && !no_left) {
         for (i = 0; i < 14; i++) {
             for (j = 0; j < 10; j++) {
+                screen[i + x - 1][j + y - 1] = 1;
+            }
+        }
+    } else if (border) {
+        for (i = 0; i < 14; i++) {
+            for (j = 0; j < 9; j++) {
                 screen[i + x - 1][j + y - 1] = 1;
             }
         }
@@ -63,23 +69,38 @@ void draw_number(uint8_t screen[128][32], uint8_t number) {
         number = 99;
     }
     if (number / 10 < 1) {
-        draw_object(screen, 4, 12, number, 1);
+        draw_object(screen, 4, 12, number, 1, 0);
     } else {
-        draw_object(screen, 4, 16, number / 10, 1);
-        draw_object(screen, 4, 8, number % 10, 1);
+        draw_object(screen, 4, 16, number / 10, 1, 0);
+        draw_object(screen, 4, 8, number % 10, 1, 1);
     } 
 }
 
-void draw_highscore(uint8_t screen[128][32], uint8_t highscore) {
+void draw_highscore(uint8_t screen[128][32], uint8_t x, uint8_t highscore) {
     if (highscore > 99) {
         highscore = 99;
     }
     if (highscore / 10 < 1) {
-        draw_object(screen, 68, 12, highscore, 0);
+        draw_object(screen, x, 12, highscore, 0, 0);
     } else {
-        draw_object(screen, 68, 16, highscore / 10, 0);
-        draw_object(screen, 68, 8, highscore % 10, 0);
+        draw_object(screen, x, 16, highscore / 10, 0, 0);
+        draw_object(screen, x, 8, highscore % 10, 0, 0);
     } 
+}
+
+void draw_letter(uint8_t x, uint8_t y, char letter, uint8_t screen[128][32]) {
+    int i, j;
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 8; j++) {
+            screen[i + x][j + y] = (letters[letter][i] >> (7 - j)) & 1;
+        }
+    }
+}
+
+void draw_highscore_line(uint8_t x_pos, uint8_t highscore, uint8_t *name, uint8_t screen[128][32]) {
+    draw_highscore(screen, x_pos + 8, highscore);
+    draw_name(x_pos, 4, name, screen, 0);
+    draw_block(screen, x_pos + 22, 4, 1, 24);
 }
 
 void draw_bird(uint8_t screen[128][32], int16_t x, uint8_t *game_ended) {
@@ -176,7 +197,7 @@ void draw_menu(Game *game) {
     }
     clear_screen(game->screen, game->screen_matrix);
     draw_menu_block(game->screen_matrix);
-    draw_highscore(game->screen_matrix, game->highscore);
+    draw_highscore(game->screen_matrix, 68, game->highscore);
     matrix_to_display(game->screen_matrix, game->screen);
     draw_screen(game->screen);
 }

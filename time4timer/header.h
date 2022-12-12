@@ -47,6 +47,9 @@ typedef struct game {
    uint8_t screen[512];
    uint8_t highscore;
    uint8_t game_ended;
+   uint8_t name[3];
+   uint8_t highscores[16][4];
+   uint8_t name_select;
 } Game;
 
 /* Declare display-related functions from mipslabfunc.c */
@@ -59,6 +62,13 @@ void init_game(Game *game);
 void run_game(Game *game);
 void kill_game(Game *game);
 void start_game(Game *game);
+
+/* Name Select */
+void run_name(Game *game);
+void draw_name(uint8_t x, uint8_t y, uint8_t *name, uint8_t screen[128][32], uint8_t under_line);
+/* Highscore */
+void run_highscore(Game *game);
+void set_highscore(Game *game);
 
 /* Graphics */
 void draw_screen(uint8_t *data);
@@ -74,6 +84,9 @@ void draw_text_block(uint8_t screen[128][32], uint8_t x, int16_t y, const uint8_
 void display_init(void);
 uint8_t spi_send_recv(uint8_t data);
 void draw_menu(Game *game);
+void draw_letter(uint8_t x, uint8_t y, char letter, uint8_t screen[128][32]);
+void draw_highscore_line(uint8_t x_pos, uint8_t highscore, uint8_t *name, uint8_t screen[128][32]);
+void quicksleep(int cyc);
 /* Declare lab-related functions from mipslabfunc.c */
 
 /* Declare display_debug - a function to help debugging.
@@ -94,6 +107,7 @@ extern const uint8_t numbers[][8];
 extern const uint8_t game_text[32][32];
 extern const uint8_t over_text[32][32];
 extern uint8_t menu[][32];
+extern uint8_t letters[][26];
 
 /* Declare text buffer for display output */
 

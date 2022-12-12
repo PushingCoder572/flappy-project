@@ -17,12 +17,28 @@ void play_game(Game *game) {
 		run_game(game);
 	}
 	kill_game(game);
+	while (game->name_select)
+	{
+		run_name(game);
+	}
+	quicksleep(2000000);
 }
 
 void draw_the_menu(Game *game) {
 	while (game->game_over)
 	{
-		draw_menu(game);
+		if (getsw() & 1) {
+			run_highscore(game);
+		} else {
+			draw_menu(game);
+		}
+	}
+}
+
+void highscore(Game *game) {
+	while (getsw() & 1)
+	{
+		run_highscore(game);
 	}
 }
 
@@ -74,12 +90,13 @@ int main(void) {
 	display_init();
 	start_game(&game);
 	while( 1 )
-	{
+	{	
 		if (game.game_over) {
 			draw_the_menu(&game);
 		} else {
 			play_game(&game);
 		}
+		
 	}
 	return 0;
 }
